@@ -1,0 +1,39 @@
+{
+    "name": "ChromeSub",
+    "version": "1.0",
+    "permissions": [
+    "tabs", "<all_urls>"
+    ],
+    "browser_action": {
+        "default_title": "Display subtitles.",
+        "default_icon": "icon.png"
+    },
+    "background": {
+        "scripts": ["background.js"]
+    },
+    "content_scripts": [
+    {
+      "matches": ["https://*/*", "http://*/*"],
+      "js": ["jquery-1.8.3.min.js", "jquery-timer.js", "jquery-ui-1.9.2.custom.min.js", "jquery-timepicker.js", "script.js"],
+      "css": ["style.css", "jquery-ui-overcast/jquery-ui-1.9.2.custom.css"],
+      "run_at": "document_end"
+    }],
+    "web_accessible_resources": [
+        "jquery-ui-overcast/images/ui-bg_flat_0_aaaaaa_40x100.png",
+        "jquery-ui-overcast/images/ui-bg_flat_0_eeeeee_40x100.png",
+        "jquery-ui-overcast/images/ui-bg_flat_55_c0402a_40x100.png",
+        "jquery-ui-overcast/images/ui-bg_flat_55_eeeeee_40x100.png",
+        "jquery-ui-overcast/images/ui-bg_glass_100_f8f8f8_1x400.png",
+        "jquery-ui-overcast/images/ui-bg_glass_35_dddddd_1x400.png",
+        "jquery-ui-overcast/images/ui-bg_glass_60_eeeeee_1x400.png",
+        "jquery-ui-overcast/images/ui-bg_inset-hard_75_999999_1x100.png",
+        "jquery-ui-overcast/images/ui-bg_inset-soft_50_c9c9c9_1x100.png",
+        "jquery-ui-overcast/images/ui-icons_3383bb_256x240.png",
+        "jquery-ui-overcast/images/ui-icons_454545_256x240.png",
+        "jquery-ui-overcast/images/ui-icons_70b2e1_256x240.png",
+        "jquery-ui-overcast/images/ui-icons_999999_256x240.png",
+        "jquery-ui-overcast/images/ui-icons_fbc856_256x240.png"
+    ],
+    "options_page": "options.html",
+    "manifest_version": 2
+}
