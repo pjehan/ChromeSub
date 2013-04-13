@@ -13,19 +13,18 @@ $(document).ready(function() {
             reader.readAsText(file, "UTF-8");
             reader.onload = function(evt) {
                 var subs = parseSrt(evt.target.result);
-                // TODO: Replace filepath with filename
-                var filepath = document.getElementById('subtitle-file').value;
+                var filename = document.getElementById('subtitle-file').value.split('\\').pop();
                 localStorage.setItem('subtitles', JSON.stringify(subs));
-                localStorage.setItem('filename', filepath);
+                localStorage.setItem('filename', filename);
                 $('#file-loaded').html(localStorage.getItem('filename'));
-            }
+            };
         }
     });
     
     /**
      * Parse .srt file and return subtitles in a JSON format.
      *
-     * @param strString String from .srt file
+     * @param srtString String from .srt file
      * @return array Subtitles
      */
     function parseSrt(srtString) {
