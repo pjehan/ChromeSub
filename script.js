@@ -156,7 +156,7 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
                     width: dialogWidth
                 });
                 
-            $('#subtitle-bar-play').live('click', function() {
+            $('#subtitle-dialog').on('click', '#subtitle-bar-play', function() {
                 var options;
                 if ($(this).text() === "play") {
                     options = {
@@ -178,23 +178,23 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
                 $(this).button("option", options);
             });
 
-            $('#subtitle-bar-prev').live('click', function() {
+            $('#subtitle-dialog').on('click', '#subtitle-bar-prev', function() {
                 subtitleGoTo(currentSubtitle - 1, true);
             });
 
-            $('#subtitle-bar-next').live('click', function() {
+            $('#subtitle-dialog').on('click', '#subtitle-bar-next', function() {
                 subtitleGoTo(currentSubtitle + 1, true);
             });
 
-            $('#subtitle-bar-speed').live('change', function() {
+            $('#subtitle-dialog').on('change', '#subtitle-bar-speed', function() {
                 subSpeed = $(this).val();
             });
             
-            $('#subtitle-bar-time').live('change', function() {
+            $('#subtitle-dialog').on('change', '#subtitle-bar-time', function() {
                 
             });
             
-            $('#subtitle-file').live('change', function() {
+            $('#subtitle-dialog').on('change', '#subtitle-file', function() {
                 var file = document.getElementById('subtitle-file').files[0];
                 
                 if (file) {
