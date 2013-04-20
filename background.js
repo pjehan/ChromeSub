@@ -6,7 +6,9 @@ chrome.browserAction.onClicked.addListener(function(tab) {
 });
 
 chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
-    if (request.localStorage) {
-        sendResponse(localStorage.getItem(request.localStorage));
+    if (request.getLocalStorage) {
+        sendResponse(localStorage.getItem(request.getLocalStorage));
+    } else if (request.setLocalStorage) {
+        sendResponse(localStorage.setItem(request.setLocalStorage, request.value));
     }
 });

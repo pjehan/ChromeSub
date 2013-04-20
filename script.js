@@ -1,6 +1,6 @@
 
 chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
-    if (request.action === 'displaySubtitles') {
+    if (request.action === 'displaySubtitles' && !$('#subtitle-dialog').length) {
         
         // Constant
         var
@@ -8,37 +8,69 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
         ;
 
         var
-            dialogHeight    = 200,
-            dialogWidth     = 400,
             currentSubtitle = 0,
             currentTimer    = 0,
             subSpeed        = 102,
             timer           = null,
-            subtitles       = null
+            filename        = null,
+            subtitles       = new Array()
         ;
         
-        chrome.extension.sendMessage({localStorage: 'subtitles'}, function(response) {
-            subtitles = JSON.parse(response);
-            loadSubtitles(subtitles);
+        chrome.extension.sendMessage({getLocalStorage: 'subtitles'}, function(response) {
+            if (response) {
+                subtitles = JSON.parse(response);
+                loadSubtitles(subtitles);
+                chrome.extension.sendMessage({getLocalStorage: 'filename'}, function(response) {
+                    filename = response;
+                    $('#subtitle-text').html(
+                        $('<span>')
+                            .attr('class', 'subtitle_file_ok')
+                            .html(filename)
+                    );
+                });
+            }
 
             var hideTimer = false;
             
+            // Handle websites
             if(document.URL.match('^http://www.cucirca.com')) {
-                dialogWidth = 590;
-                dialogHeight = 330;
+                
             }
 
             $('<div>')
                 .attr('title', 'Subtitles')
                 .attr('id', 'subtitle-dialog')
+                .attr('class', 'subtitle_dialog')
+                .draggable({ handle: 'span.subtitle_drag_handle' })
+                .resizable({ handles: 'e' })
+                .center()
                 .appendTo('body')
                 .append(
                     $('<div>')
-                        .attr('id', 'subtitle-bar-text')
+                        .attr('id', 'subtitle-tiny-bar')
+                        .attr('class', 'subtitle_tiny_bar')
+                        .append(
+                            $('<div>')
+                                .attr('id', 'subtitle-text')
+                                .attr('class', 'subtitle_text')
+                        )
+                        .append(
+                            $('<span>')
+                                .attr('class', 'subtitle_drag_handle subtitle_tiny_bar_btn')
+                                .html('handle')
+                                .button({
+                                    text: false,
+                                    icons: {
+                                        primary: "ui-icon-grip-dotted-vertical"
+                                    }
+                                }).css('cursor', 'move')
+                        )
                 )
                 .append(
                     $('<div>')
                         .attr('id', 'subtitle-controls')
+                        .attr('class', 'subtitle_controls')
+                        .hide()
                         .append(
                             $('<button>')
                                 .attr('id', 'subtitle-bar-prev')
@@ -122,40 +154,11 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
                                     value: 0,
                                     slide: function(event, ui) {
                                         subtitleGoTo(ui.value, true);
-                                        $('#subtitle-text').html(subtitles[currentSubtitle].text);
                                     }
                                 })
                         )
-                )
-                .append(
-                    $('<div>')
-                        .attr('id', 'subtitle-text')
-                        .attr('class', 'subtitle_text')
-                )
-                .dialog({
-                    show: {
-                        effect: 'fadeIn',
-                        complete: function() {
-                            $('#subtitle-dialog').parent('div').css('background', 'none');
-                            $('#subtitle-dialog').parent('div').css('background-color', 'rgba(0, 0, 0, 0.05)');
-                            $(this).mouseenter(function() {
-                                clearTimeout(hideTimer);
-                                $('#subtitle-dialog').parent('div').children('div.ui-dialog-titlebar').fadeTo('slow', '1');
-                                $('#subtitle-controls').fadeTo('slow', '1');
-                            })
-                            .mouseleave(function() {
-                                hideTimer = setTimeout(function(){
-                                    $('#subtitle-dialog').parent('div').children('div.ui-dialog-titlebar').hide('slow');
-                                    $('#subtitle-controls').hide('slow');
-                                }, 2000);
-                            });
-                        }
-                    },
-                    minWidth: 400,
-                    height: dialogHeight,
-                    width: dialogWidth
-                });
-                
+                );
+            
             $('#subtitle-dialog').on('click', '#subtitle-bar-play', function() {
                 var options;
                 if ($(this).text() === "play") {
@@ -176,6 +179,47 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
                     timer.pause();
                 }
                 $(this).button("option", options);
+            });
+            
+            /**
+             * Show / Hide controls
+             */
+            $(document).on({
+                mouseenter: function() {
+                    clearTimeout(hideTimer);
+                    $('#subtitle-controls').slideDown();
+                    $('#subtitle-tiny-bar').children().not('#subtitle-text').fadeTo('fast', 1);
+                },
+                mouseleave: function() {
+                    hideTimer = setTimeout(function() {
+                        $('#subtitle-controls').slideUp();
+                        $('#subtitle-tiny-bar').children().not('#subtitle-text').fadeTo('fast', 0.2);
+                    }, 2000);
+                }
+            }, '#subtitle-dialog');
+            
+            $(document).keydown(function(e) {
+                if (e.shiftKey) {
+                    switch (e.which) {
+                        case 80: // P
+                            $('#subtitle-bar-play').trigger('click');
+                            break;
+                        case 38: // Arrow Up
+                            subSpeed++;
+                            $('#subtitle-bar-speed').val(subSpeed);
+                            break;
+                        case 40: // Arrow Down
+                            subSpeed--;
+                            $('#subtitle-bar-speed').val(subSpeed);
+                            break;
+                        case 37: // Arrow Left
+                            $('#subtitle-bar-prev').trigger('click');
+                            break;
+                        case 39: // Arrow Right
+                            $('#subtitle-bar-next').trigger('click');
+                            break;
+                    }
+                }
             });
 
             $('#subtitle-dialog').on('click', '#subtitle-bar-prev', function() {
@@ -202,12 +246,20 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
                     reader.readAsText(file, "UTF-8");
                     reader.onload = function(evt) {
                         var subs = parseSrt(evt.target.result);
-                        localStorage.setItem('subtitles', JSON.stringify(subs));
-                        localStorage.setItem('filename', file.name);
+                        chrome.extension.sendMessage({setLocalStorage: 'subtitles', value: JSON.stringify(subs)});
+                        chrome.extension.sendMessage({setLocalStorage: 'filename', value: file.name});
                         loadSubtitles(subs);
                     };
                 }
             });
+            
+            if (subtitles.length === 0) {
+                $('#subtitle-text').html(
+                        $('<span>')
+                            .attr('class', 'subtitle_file_error')
+                            .html('Invalid subs file!')
+                    );
+            }
 
             /**
              * Go to the subtitles defined by the index
@@ -217,10 +269,15 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
              * @returns {int} currentTimer
              */
             function subtitleGoTo(index, updateTimer) {
-                currentSubtitle = index;
-                $('#subtitle-slider').slider('value', index);
-                if (updateTimer) {
-                    currentTimer = subtitles[index].startTime;
+                // Check if the subtitle index match a subtitle
+                if (subtitles[index]) {
+                    currentSubtitle = index;
+                    $('#subtitle-slider').slider('value', index);
+                    if (updateTimer) {
+                        currentTimer = subtitles[index].startTime;
+                        refreshTimer();
+                        $('#subtitle-text').html(subtitles[currentSubtitle].text);
+                    }
                 }
                 
                 return currentTimer;
@@ -248,11 +305,22 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
                     }
 
                     currentTimer += parseInt(subSpeed);
-                    $('#subtitle-bar-time').val(("0" + Math.floor(currentTimer / 36e5)).slice(-2) + ':' + ("0" + Math.floor((currentTimer % 36e5) / 6e4)).slice(-2) + ':' + ("0" + Math.floor((currentTimer % 6e4) / 1000)).slice(-2));
+                    refreshTimer();
 
                 }, SUB_REFRESH_TIME, false);
                 
                 return timer;
+            }
+            
+            /**
+             * Refresh timer input
+             * 
+             * @returns currentTimer
+             */
+            function refreshTimer() {
+                $('#subtitle-bar-time').val(("0" + Math.floor(currentTimer / 36e5)).slice(-2) + ':' + ("0" + Math.floor((currentTimer % 36e5) / 6e4)).slice(-2) + ':' + ("0" + Math.floor((currentTimer % 6e4) / 1000)).slice(-2));
+                
+                return currentTimer;
             }
 
             /**
@@ -316,5 +384,7 @@ chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
 
         });
         
+    } else if (request.action === 'displaySubtitles' && $('#subtitle-dialog').length) {
+        $('#subtitle-dialog').fadeToggle();
     }
 });

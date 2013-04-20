@@ -56,7 +56,7 @@ $(document).ready(function() {
                     break;
 
                 case SRT_STATE_TEXT:
-                    if (lines[i].trim() == '' && subTime.indexOf(' --> ') !== -1) {
+                    if (lines[i].trim() === '' && subTime.indexOf(' --> ') !== -1) {
                         subTimes = subTime.split(' --> ');
                         
                         subs.push({
@@ -69,7 +69,7 @@ $(document).ready(function() {
                         state = SRT_STATE_SUBNUMBER;
                     } else {
                         if (subText.length > 0) {
-                            subText += '\n'
+                            subText += '\n';
                         }
                         subText += lines[i];
                     }

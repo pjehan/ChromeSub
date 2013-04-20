@@ -1,16 +1,61 @@
 
+.subtitle_dialog {    
+    border: 1px solid;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.1);
+    height: auto;
+    width: 550px;
+    z-index: 9999;
+}
+
+.subtitle_dialog input {
+    display: inline-block !important;
+    margin-left: 5px !important;
+}
+
 .subtitle_bar {
     position: absolute;
     z-index: 99999;
-    height: 100px;
+    height: 50px;
     width: 400px;
     top: 100px;
 }
 
+.subtitle_tiny_bar {
+    padding: 10px;
+    height: 30px;
+}
+
+.subtitle_tiny_bar_btn {
+    float: right;
+}
+
+.subtitle_file_error {
+    color: red;
+    font-size: 20px;
+}
+
+.subtitle_file_ok {
+    color: #57a957;
+    font-size: 20px;
+}
+
+.subtitle_controls {
+    padding: 10px;
+}
+
 .subtitle_text {
+    display: inline-block;
+    width: 80%;
     margin-bottom: 10px;
     color: white;
     text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+    font-size: 16px;
+}
+
+.subtitle_time {
+    width: 100px !important;
+    text-align: center;
 }
 
 .subtitle_speed {
